@@ -15,8 +15,6 @@ export interface InfiniteScrollProps {
   hasPrevious?: boolean;
   // Whether there are more items to load at the bottom
   hasNext?: boolean;
-  // Whether to use the viewport as the root for the IntersectionObserver, defaults to false
-  useViewPortAsRoot?: boolean;
   // The loader toast to render when the loader is triggered
   loaderToast?: ReactNode;
   // The duration in milliseconds to show the loader toast, defaults to 1000
@@ -45,7 +43,6 @@ export function InfiniteScroll({
   bottomLoader,
   loaderToast,
   endMessage,
-  useViewPortAsRoot,
   onBottomReached,
   onTopReached,
 }: InfiniteScrollProps) {
@@ -73,7 +70,7 @@ export function InfiniteScroll({
         });
       },
       {
-        root: useViewPortAsRoot ? null : scrollAreaRef.current,
+        root: scrollAreaRef.current,
         threshold: Array.from({ length: 11 }, (_, i) => i / 10), // Create thresholds from 0 to 1
       },
     );
@@ -84,7 +81,7 @@ export function InfiniteScroll({
     return () => {
       observer.disconnect();
     };
-  }, [useViewPortAsRoot]);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {

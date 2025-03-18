@@ -62,7 +62,6 @@ export default App;
 | `debounceDelay`        | `number`               | Debounce interval in ms for top/bottom events. Default 100.                                                               |
 | `hasPrevious`          | `boolean`              | Indicates if there are items to load above.                                                                               |
 | `hasNext`              | `boolean`              | Indicates if there are items to load below.                                                                               |
-| `useViewPortAsRoot`    | `boolean`              | Uses browser viewport as root for intersection.                                                                           |
 | `loaderToast`          | `ReactNode`            | Toast displayed briefly after loading.                                                                                    |
 | `toastVisibleDuration` | `number`               | Duration in ms to show the toast. Default 1000.                                                                           |
 | `topLoader`            | `(ratio) => ReactNode` | Render function for top loader, with `ratio` being the interection percentage (0..1), good for render a circular progress |

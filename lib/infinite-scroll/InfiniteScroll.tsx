@@ -50,8 +50,6 @@ export function InfiniteScroll({
   onTopReached,
 }: InfiniteScrollProps) {
   const [intersectionRatio, setIntersectionRatio] = useState(0);
-  const [topReached, setTopReached] = useState(false);
-  const [bottomReached, setBottomReached] = useState(false);
   const [loaderToastVisible, setLoaderToastVisible] = useState(false);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -60,6 +58,8 @@ export function InfiniteScroll({
   const topTimeoutRef = useRef<number | null>(null);
   const bottomTimeoutRef = useRef<number | null>(null);
   const loaderToastTimeoutRef = useRef<number | null>(null);
+  const topTriggeredRef = useRef(false);
+  const bottomTriggeredRef = useRef(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -67,10 +67,8 @@ export function InfiniteScroll({
         entries.forEach((entry) => {
           if (entry.target === topLoaderRef.current) {
             setIntersectionRatio(entry.intersectionRatio);
-            setTopReached(entry.isIntersecting);
           } else if (entry.target === bottomLoaderRef.current) {
             setIntersectionRatio(entry.intersectionRatio);
-            setBottomReached(entry.isIntersecting);
           }
         });
       },
@@ -98,7 +96,8 @@ export function InfiniteScroll({
       const isAtBottom =
         scrollArea.scrollHeight - scrollArea.scrollTop - 5 <= scrollArea.clientHeight;
 
-      if (isAtTop && hasPrevious) {
+      // Only trigger onTopReached again if user leaves top and comes back
+      if (isAtTop && hasPrevious && !topTriggeredRef.current) {
         if (!topTimeoutRef.current) {
           topTimeoutRef.current = setTimeout(() => {
             onTopReached?.();
@@ -106,14 +105,18 @@ export function InfiniteScroll({
             topTimeoutRef.current = null;
           }, debounceDelay);
         }
-      } else {
+        topTriggeredRef.current = true;
+      } else if (!isAtTop && topTriggeredRef.current) {
+        // reset so we can trigger again next time we scroll to top
+        topTriggeredRef.current = false;
         if (topTimeoutRef.current) {
           clearTimeout(topTimeoutRef.current);
           topTimeoutRef.current = null;
         }
       }
 
-      if (isAtBottom && hasNext) {
+      // Only trigger onBottomReached again if user leaves bottom and comes back
+      if (isAtBottom && hasNext && !bottomTriggeredRef.current) {
         if (!bottomTimeoutRef.current) {
           bottomTimeoutRef.current = setTimeout(() => {
             onBottomReached?.();
@@ -121,7 +124,10 @@ export function InfiniteScroll({
             bottomTimeoutRef.current = null;
           }, debounceDelay);
         }
-      } else {
+        bottomTriggeredRef.current = true;
+      } else if (!isAtBottom && bottomTriggeredRef.current) {
+        // reset so we can trigger again next time we scroll to bottom
+        bottomTriggeredRef.current = false;
         if (bottomTimeoutRef.current) {
           clearTimeout(bottomTimeoutRef.current);
           bottomTimeoutRef.current = null;
@@ -146,15 +152,7 @@ export function InfiniteScroll({
         clearTimeout(bottomTimeoutRef.current);
       }
     };
-  }, [
-    topReached,
-    bottomReached,
-    hasPrevious,
-    hasNext,
-    onTopReached,
-    onBottomReached,
-    debounceDelay,
-  ]);
+  }, [hasPrevious, hasNext, onTopReached, onBottomReached, debounceDelay]);
 
   useEffect(() => {
     if (loaderToastVisible) {
